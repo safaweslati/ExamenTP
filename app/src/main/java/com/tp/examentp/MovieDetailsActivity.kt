@@ -24,35 +24,38 @@ class MovieDetailsActivity : AppCompatActivity() {
         binding = ActivityMovieDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        movieId = intent.getIntExtra("movieId", -1)
-        var viewModel = ViewModelProvider(this, MovieViewModelFactory(this)).get(MovieViewModel::class.java)
+        movieId = intent.getIntExtra("movieId",0)
+        viewModel =
+            ViewModelProvider(this, MovieViewModelFactory(this)).get(MovieViewModel::class.java)
 
         viewModel.getMovieDetails(movieId)
+
+        viewModel.movieDetails.observe(this) { movieDetails ->
+            val imageUrl = "https://image.tmdb.org/t/p/w500/${movieDetails?.poster_path}"
+            Glide.with(binding.imageView.context)
+                .load(imageUrl)
+                .into(binding.imageView)
+            binding.title.text = movieDetails.title
+            binding.date.text = movieDetails.release_date
+            binding.overview.text = movieDetails.overview
+            binding.time.text = " ${formatRuntime(movieDetails.runtime)}"
+            val genres = movieDetails.genres
+            val genreNames = genres.joinToString(", ") { it.name }
+            binding.genres.text = genreNames
+            val userRatingPercentage =
+                (movieDetails?.vote_average?.div(10.0)?.times(100))?.toInt()
+            if (userRatingPercentage != null) {
+                binding.progressBar.progress = userRatingPercentage
+                binding.textViewProgress.text = "$userRatingPercentage%"
+            }
+        }
+
         viewModel.connectionStatus.observe(this, Observer { isConnected ->
             if (!isConnected) {
                 showConnectionError()
-            } else {
-                viewModel.movieDetails.observe(this) { movieDetails ->
-                    val imageUrl = "https://image.tmdb.org/t/p/w500/${movieDetails?.poster_path}"
-                    Glide.with(binding.imageView.context)
-                        .load(imageUrl)
-                        .into(binding.imageView)
-                    binding.title.text = movieDetails.title
-                    binding.date.text = movieDetails.release_date
-                    binding.overview.text = movieDetails.overview
-                    binding.time.text = " ${formatRuntime(movieDetails.runtime)}"
-                    val genres = movieDetails.genres
-                    val genreNames = genres.joinToString(", ") { it.name }
-                    binding.genres.text = genreNames
-                    val userRatingPercentage =
-                        (movieDetails?.vote_average?.div(10.0)?.times(100))?.toInt()
-                    if (userRatingPercentage != null) {
-                        binding.progressBar.progress = userRatingPercentage
-                        binding.textViewProgress.text = "$userRatingPercentage%"
-                    }
-                }
             }
         })
+
     }
 
     private fun showConnectionError() {
@@ -62,14 +65,14 @@ class MovieDetailsActivity : AppCompatActivity() {
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
-
         retryButton.setOnClickListener {
             viewModel.getMovieDetails(movieId)
             dialog.dismiss()
         }
-
         dialog.show()
     }
+
+
     private fun formatRuntime(minutes: Int): String {
         val hours = minutes / 60
         val remainingMinutes = minutes % 60
@@ -80,5 +83,6 @@ class MovieDetailsActivity : AppCompatActivity() {
             String.format("%d min", remainingMinutes)
         }
     }
+
 
 }

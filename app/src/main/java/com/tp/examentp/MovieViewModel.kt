@@ -10,13 +10,9 @@ import android.content.Context
 import android.widget.Toast
 
 
-
 class MovieViewModel(private val context: Context) : ViewModel() {
     private val repository = MovieRepository(context)
     private val apiKey = "ea800ad24323df3e454f263fffdc2de4"
-
-
-
     private val _movies = MutableLiveData<List<Movie>>()
     val movies: LiveData<List<Movie>> get() = _movies
 
@@ -29,7 +25,6 @@ class MovieViewModel(private val context: Context) : ViewModel() {
     init {
         loadMovies()
     }
-
     fun loadMovies() {
         if (repository.isNetworkAvailable()) {
             repository.getPopularMovies(apiKey, object : OnMoviesFetchedListener {
@@ -46,26 +41,27 @@ class MovieViewModel(private val context: Context) : ViewModel() {
             _connectionStatus.postValue(false)
         }
     }
-
-
-
     fun getMovieDetails(movieId: Int) {
         if (repository.isNetworkAvailable()) {
             repository.getMovieDetails(apiKey, movieId, object : OnMovieDetailsFetchedListener {
             override fun onMovieDetailsFetched(movieDetails: MovieDetails) {
                 _movieDetails.postValue(movieDetails)
             }
-
             override fun onError(errorMessage: String) {
                 Toast.makeText(context, "Error fetching movie details", Toast.LENGTH_SHORT).show()
-
             }
         })
         }
         else{
             _connectionStatus.postValue(false)
+            Toast.makeText(context, "No Internet Connection", Toast.LENGTH_SHORT).show()
+
         }
     }
+
+
+
+
 }
 
 

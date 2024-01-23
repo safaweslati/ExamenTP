@@ -42,9 +42,7 @@ class MovieRepository(private val context: Context) {
     }
 
     fun getMovieDetails(apiKey: String, movieId: Int, listener: OnMovieDetailsFetchedListener) {
-        if (isNetworkAvailable()) {
             val call = movieApiService.getMovieDetails(movieId, apiKey)
-
             call.enqueue(object : Callback<MovieDetails> {
                 override fun onResponse(call: Call<MovieDetails>, response: Response<MovieDetails>) {
                     if (response.isSuccessful) {
@@ -55,15 +53,12 @@ class MovieRepository(private val context: Context) {
                         listener.onError("Error fetching movie details")
                     }
                 }
-
                 override fun onFailure(call: Call<MovieDetails>, t: Throwable) {
                     listener.onError("Connection error")
                 }
             })
-        } else {
-            listener.onError("No internet connection")
-        }
     }
+
 
     fun isNetworkAvailable(): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -71,4 +66,6 @@ class MovieRepository(private val context: Context) {
         val actNw = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
         return actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
     }
+
+
 }

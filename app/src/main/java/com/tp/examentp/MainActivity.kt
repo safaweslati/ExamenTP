@@ -56,12 +56,10 @@ class MainActivity : AppCompatActivity(), MovieAdapter.OnItemClickListener {
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
-
         retryButton.setOnClickListener {
             viewModel.loadMovies()
             dialog.dismiss()
         }
-
         dialog.show()
     }
 
